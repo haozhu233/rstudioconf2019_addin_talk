@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Empowering A Data Team with   RStudio Addins</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Hao Zhu    Marcus Institute for Aging Research" />
+    <meta name="date" content="2019-01-17" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Empowering A Data Team with <br/> <span style="color: #D9230F;">RStudio Addins</span>
+### Hao Zhu <br/><br/> Marcus Institute for Aging Research
+### 2019-01-17
+
+---
+
+
+
+
+
+# A Little about us and our infrastructure
+
+- Harvard-affiliated Research Group about Aging in Boston 
+  
+- Data team size: 10-15
+  
+- R Infrastructure:
+
+  - Self-hosted RStudio Server + Connect
+  
+  - We use shared R libraries but personal packages are allowed.
+
+---
+
+![](img/addin_general.png)
+
+---
+
+# Some Facts about RStudio Addin
+
+- Announced in early 2016
+
+- Goal: Provide convenience to regular RStudio users
+
+- Capacity:
+
+    - Interact with **RStudio IDE** through [`rstudioapi`](https://github.com/rstudio/rstudioapi)
+    
+    - Interactive User Interface through [`shiny`](https://github.com/rstudio/shiny)
+    
+    - Access various web services through API &amp; [httr](https://github.com/r-lib/httr)
+
+- RStudio Addins need to be delivered by R packages. One R package can hold multiple addins
+
+---
+
+# In this talk
+
+- Provide an overview of how to create an addin
+
+- Present Addins that we created at work on our RStudio Server
+
+- Present a few use cases that RStudio Addins can greatly enhance our productivities
+    - Reference management through [`rcrossref`](https://github.com/ropensci/rcrossref) + [`citr`](https://github.com/crsh/citr)
+    
+    - Remote Cloud Computing Connection through [`r2cluster`](https://github.com/hebrewseniorlife/r2cluster)
+
+- Share some thoughts we have about integrating RStudio Addins with Processes at work
+
+---
+
+class: center, middle
+
+# Let's start!
+
+---
+
+# Example #1: Between Dark &amp; Light
+
+.center[
+![](img/dark_light.jpg)
+]
+
+
+???
+
+Image credit: [beyondyourmind](https://funnyjunk.com/channel/wallpapers/A+collision+of+dark+and+light/pLstDcY/)
+
+---
+
+![](img/global_option.png)
+
+---
+
+# Create RStudio Addin - Step 1
+
+&gt; To the end, addins are just R functions.
+
+--
+
+
+```r
+rstudioapi::getThemeInfo()
+```
+
+```
+## $editor
+## [1] "Clouds"
+## 
+## $global
+## [1] "Modern"
+## 
+## $dark
+## [1] FALSE
+```
+
+--
+
+
+```r
+current_theme &lt;- rstudioapi::getThemeInfo()
+ifelse(current_theme$dark, "Clouds", "Clouds Midnight")
+```
+
+```
+## [1] "Clouds Midnight"
+```
+
+---
+
+# Create RStudio Addin - Step 1
+
+&gt; To the end, addins are just R functions.
+
+
+```r
+switch_theme &lt;- function() {
+  current_theme &lt;- rstudioapi::getThemeInfo()
+  next_theme &lt;- ifelse(current_theme$dark, "Clouds", "Clouds Midnight")
+  rstudioapi::applyTheme(next_theme)
+}
+```
+
+Put this function somewhere in the `R` folder.
+
+---
+
+# Create RStudio Addin - Step 2
+
+&gt; RStudio has to know the existence of this addin.
+
+--
+
+In **`inst/rstudio/addins.dcf`**, declare this addin.
+
+
+```
+Name: 🌗 Switch RStudio Theme
+Description: Toggle RStudio Server Theme between Dark and Light
+Binding: switch_theme
+Interactive: false
+```
+
+Binding links the Addin Button with `switch_theme`. 
+
+
+---
+
+# Minimal RStudio Addin Structure
+
+```
+- DESCRIPTION
+- R/
+    - my_addins.R
+- inst/
+    - rstudio/
+        - addins.dcf
+```
+
+.center[
+## Only 3 files!
+]
+
+---
+
+# Example #2: Bookmarks
+
+- Use cases
+
+  - Server specific documentation
+  
+  - Personal Use
+  
+- Guess how long the code look like?
+
+--
+
+
+```r
+open_server_guide &lt;- function() {
+  rstudioapi::viewer("https://ifar-connect.hsl.harvard.edu/using_rstudio_server/")
+}
+```
+
+---
+
+# Example #3: Setup Favorite Addins
+
+- "Hi, RStudio, here is a Feature Request if possible 😆"
+
+- For now, you can re-export awesome addins from other packages
+
+- How?
+
+
+```r
+open_xaringan &lt;- function() {
+  xaringan:::inf_mr()
+}
+```
+
+---
+
+# Example #4: Reference Management: rcrossref + citr
+
+- [rcrossref](https://github.com/ropensci/rcrossref) by [rOpenSci](https://github.com/ropensci)
+
+- [citr](https://github.com/crsh/citr) by [Frederik Aust](https://github.com/crsh)
+
+---
+
+# Other Addin Ideas
+
+- Manage ODBC Connections: Open up hidden file `.odbc.ini`.
+- Open up Octave in Terminal
+- [`r2cluster`](https://github.com/hebrewseniorlife/r2cluster)
+
+![](img/ro2.gif)
+
+---
+ 
+# Take home messages
+
+--
+
+- ### Creating an RStudio Addin is really &lt;span style=" font-weight: bold;    color: #D9230F;" &gt;easy&lt;/span&gt; and &lt;span style=" font-weight: bold;    color: #D9230F;" &gt;fun&lt;/span&gt;!
+
+--
+
+- Addin is a great tool for personal use. 
+  - If you have never created an R package, don't be afraid and make your 1st one today!
+  
+--
+
+- Addin is a great tool for teams to standardize practices!
+
+---
+
+#Credits
+
+.left-column[
+We gratefully acknowledge support from the NIA via a Boston Pepper Center (P30AG031679, PI: S Bhasin) Core Development Project Grant to TG Travison
+]
+
+.right-column[
+![](img/Biostats.jpg)
+]
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

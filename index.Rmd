@@ -114,7 +114,8 @@ rstudioapi::getThemeInfo()
 
 ```{r}
 current_theme <- rstudioapi::getThemeInfo()
-ifelse(current_theme$dark, "Clouds", "Clouds Midnight")
+next_theme <- ifelse(current_theme$dark, "Clouds", "Clouds Midnight")
+next_theme
 ```
 
 ---
